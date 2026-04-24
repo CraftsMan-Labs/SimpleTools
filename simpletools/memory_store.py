@@ -10,6 +10,11 @@ from contextlib import contextmanager, suppress
 from pathlib import Path
 from typing import Any
 
+from simpletools.responses.models import (
+    MemoryStoreMutation,
+    MemoryStoreReadOk,
+)
+
 ENTRY = "\n§\n"
 
 _THREATS: list[tuple[str, str]] = [
@@ -102,12 +107,12 @@ class FileMemoryStore:
     def _limit(self, target: str) -> int:
         return self._user_limit if target == "user" else self._mem_limit
 
-    def read(self, target: str) -> dict[str, Any]:
+    def read(self, target: str) -> MemoryStoreReadOk:
         path = self._path(target)
         entries = self._read_entries(path)
         return {"ok": True, "target": target, "entries": entries, "rendered": ENTRY.join(entries)}
 
-    def add(self, target: str, content: str) -> dict[str, Any]:
+    def add(self, target: str, content: str) -> MemoryStoreMutation:
         content = content.strip()
         if not content:
             return {"ok": False, "error": "empty content"}
@@ -130,7 +135,7 @@ class FileMemoryStore:
             entries = trial
         return {"ok": True, "entries": entries}
 
-    def replace(self, target: str, old_text: str, new_content: str) -> dict[str, Any]:
+    def replace(self, target: str, old_text: str, new_content: str) -> MemoryStoreMutation:
         old_text = old_text.strip()
         new_content = new_content.strip()
         if not old_text or not new_content:
@@ -159,7 +164,7 @@ class FileMemoryStore:
             entries = trial
         return {"ok": True, "entries": entries}
 
-    def remove(self, target: str, old_text: str) -> dict[str, Any]:
+    def remove(self, target: str, old_text: str) -> MemoryStoreMutation:
         old_text = old_text.strip()
         if not old_text:
             return {"ok": False, "error": "old_text required"}
