@@ -8,17 +8,26 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from simpletools.responses.models import (
+    BrowserSessionState,
+    FileReadTrackerState,
+    ToolResult,
+)
 from simpletools.store import Store
 
 if TYPE_CHECKING:
     from simpletools.memory_store import FileMemoryStore
 
 
-SenderFn = Callable[[str, str, dict[str, Any]], dict[str, Any]]
+SenderFn = Callable[[str, str, dict[str, Any]], ToolResult]
 
 
-def _default_read_tracker() -> dict[str, Any]:
+def _default_read_tracker() -> FileReadTrackerState:
     return {"last_key": None, "consecutive": 0, "dedup": {}, "read_ts": {}}
+
+
+def _default_browser_session() -> BrowserSessionState:
+    return {"page": None, "browser": None, "pw": None, "console": []}
 
 
 @dataclass
@@ -29,14 +38,15 @@ class ToolContext:
     data_dir: Path
     store: Store
     session_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    on_delegate: Callable[[str, ToolContext], dict[str, Any]] | None = None
+    on_delegate: Callable[[str, ToolContext], ToolResult] | None = None
     _todo_items: list[dict[str, str]] = field(default_factory=list, repr=False)
     _process_registry: dict[str, Any] = field(default_factory=dict, repr=False)
-    _file_read_tracker: dict[str, Any] = field(default_factory=_default_read_tracker, repr=False)
+    _file_read_tracker: FileReadTrackerState = field(
+        default_factory=_default_read_tracker, repr=False
+    )
     _file_memory_store: FileMemoryStore | None = field(default=None, repr=False)
-    _browser_session: dict[str, Any] = field(
-        default_factory=lambda: {"page": None, "browser": None, "pw": None, "console": []},
-        repr=False,
+    _browser_session: BrowserSessionState = field(
+        default_factory=_default_browser_session, repr=False
     )
     _message_senders: dict[str, SenderFn] = field(default_factory=dict, repr=False)
 
@@ -49,15 +59,15 @@ class ToolContext:
         return self._process_registry
 
     @property
-    def file_read_tracker(self) -> dict[str, Any]:
+    def file_read_tracker(self) -> FileReadTrackerState:
         return self._file_read_tracker
 
     @property
-    def browser_session(self) -> dict[str, Any]:
+    def browser_session(self) -> BrowserSessionState:
         return self._browser_session
 
     def reset_browser_session(self) -> None:
-        self._browser_session = {"page": None, "browser": None, "pw": None, "console": []}
+        self._browser_session = _default_browser_session()
 
     @property
     def message_senders(self) -> dict[str, SenderFn]:
