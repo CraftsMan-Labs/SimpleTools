@@ -1,14 +1,14 @@
-# SimpleTools
+# simpleTools
 
 Python equivalents of common Hermes-style agent tool names: web, browser (optional Playwright), terminal, files, vision (OpenAI-compatible), todo, clarify, code execution, delegation (callback), memory, session search, cron, messaging hooks, Honcho-like local profile, and skills on disk.
 
 **Excluded** (per request): image generation, TTS, Home Assistant, mixture-of-agents, RL.
 
-This repository is a **normal Python package** published to PyPI as [`simpletools`](https://pypi.org/project/simpletools/). Builds and installs are driven by **[uv](https://docs.astral.sh/uv/)**.
+This repository is the **simpleTools** distribution on PyPI ([project page](https://pypi.org/project/simpletools/) — PyPI normalizes the name to lowercase in URLs). The importable Python package is **`simpletools`**. Builds and installs are driven by **[uv](https://docs.astral.sh/uv/)**.
 
 ## Agent toolkit
 
-Tools are registered in [`simpletools/registry.py`](simpletools/registry.py) (`TOOLS`). Host code wires a [`ToolContext`](simpletools/context.py) and calls [`ToolRunner.call`](simpletools/runner.py) or [`registry.call_tool`](simpletools/registry.py). The CLI can list the same names: `simpletools list`.
+Tools are registered in [`simpletools/registry.py`](simpletools/registry.py) (`TOOLS`). Host code wires a [`ToolContext`](simpletools/context.py) and calls [`ToolRunner.call`](simpletools/runner.py) or [`registry.call_tool`](simpletools/registry.py). The CLI can list the same names: `simpleTools list` (the `simpletools` command is an alias).
 
 | Tool | What it does |
 | --- | --- |
@@ -52,7 +52,7 @@ Tools are registered in [`simpletools/registry.py`](simpletools/registry.py) (`T
 ## Development with uv
 
 ```bash
-git clone <repo-url> && cd SimpleTools
+git clone <repo-url> && cd <repo-directory>
 uv sync --all-extras          # install runtime + browser extra + dev (pytest, ruff)
 uv run python -m unittest discover -s tests -v
 uv run ruff check simpletools tests
@@ -68,11 +68,11 @@ uv lock
 ## Install (users)
 
 ```bash
-uv tool install simpletools
+uv tool install simpleTools
 # or
-uv pip install simpletools
+uv pip install simpleTools
 # optional browser automation
-uv pip install "simpletools[browser]"
+uv pip install "simpleTools[browser]"
 playwright install chromium
 ```
 
@@ -80,7 +80,7 @@ playwright install chromium
 
 1. Bump `version` in [`pyproject.toml`](pyproject.toml).
 2. Run `uv lock` (if dependencies changed) and `uv build`.
-3. **Local publish:** `uv publish` with `UV_PUBLISH_TOKEN` set to a [PyPI API token](https://pypi.org/manage/account/token/) (scope: project `simpletools`).
+3. **Local publish:** `uv publish` with `UV_PUBLISH_TOKEN` set to a [PyPI API token](https://pypi.org/manage/account/token/) (scope: project **simpleTools** / `simpletools` on PyPI).
 4. **CI publish:** GitHub Actions [`.github/workflows/publish.yml`](.github/workflows/publish.yml) runs on **release published** and expects a repo secret `PYPI_API_TOKEN`.
 
 Trusted publishing (OIDC) can be enabled later via `uv publish --trusted-publishing always` once the PyPI project is configured for it.
@@ -99,8 +99,8 @@ print(r.call("memory", action="add", target="memory", content="Uses uv for packa
 CLI:
 
 ```bash
-simpletools list
-simpletools call memory --args '{"action":"read"}'
+simpleTools list
+simpleTools call memory --args '{"action":"read"}'
 ```
 
 ## Configuration

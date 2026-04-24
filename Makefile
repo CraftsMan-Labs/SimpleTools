@@ -1,4 +1,4 @@
-# SimpleTools — tests, preflight, semver bumps, PyPI publish (uv).
+# simpleTools — tests, preflight, semver bumps, PyPI publish (uv).
 #
 # Typical release (after changes are committed):
 #   make test              # run unit tests
@@ -20,7 +20,7 @@ GIT_REMOTE ?= origin
 	version-patch version-minor version-major version-set tag-release
 
 help:
-	@echo "SimpleTools — common commands"
+	@echo "simpleTools — common commands"
 	@echo ""
 	@echo "  make test              Run unit tests (unittest)"
 	@echo "  make preflight         Pre-publish gate: sync, lint, types, tests, build, uv publish --dry-run"
