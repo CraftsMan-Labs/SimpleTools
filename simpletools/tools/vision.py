@@ -3,10 +3,10 @@ from __future__ import annotations
 import base64
 import os
 from pathlib import Path
-from typing import Any
 
 from simpletools.context import ToolContext
 from simpletools.http_client import post as http_post
+from simpletools.responses.models import VisionAnalyzeResult
 
 _HTTP_CLIENT_ERROR = 400
 
@@ -16,7 +16,7 @@ def vision_analyze(
     question: str,
     image_path: str | None = None,
     image_base64: str | None = None,
-) -> dict[str, Any]:
+) -> VisionAnalyzeResult:
     """Analyze an image with an OpenAI-compatible vision endpoint."""
     key = os.environ.get("OPENAI_API_KEY")
     base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
