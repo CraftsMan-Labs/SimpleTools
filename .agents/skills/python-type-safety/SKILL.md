@@ -84,6 +84,35 @@ class UserRepository:
 
 Use `mypy --strict` or `pyright` in CI to catch type errors early. For existing projects, enable strict mode incrementally using per-module overrides.
 
+### Pattern 1b: Prefer response models over `dict[str, Any]` for shaped payloads
+
+Public tool handlers, HTTP-like adapters, and persistence rows that serialize to JSON should expose **structured types**, not an untyped bag of keys.
+
+- Use **`typing.TypedDict`** (with `typing_extensions.NotRequired` on Python 3.10 for optional keys) when results stay as plain `dict` at runtime—for example LLM tool protocols, `json.dumps` in CLIs, and SQLite rows with fixed columns.
+- Model **success and failure separately** and combine with `TypeAlias = Ok | Err | ...` so callers and `mypy`/`pyright` can reason about `ok: Literal[True]` vs `ok: Literal[False]`.
+- Use **`dataclasses`** when you want behavior, defaults, or `frozen=True`; use **Pydantic** when you need validation and coercion (accept the dependency).
+- For **mutable session state** (browser handles, read trackers), a `TypedDict` with `total=True` and required keys is often clearer than `dict[str, Any]`.
+
+```python
+from typing import Literal, TypeAlias, TypedDict
+from typing_extensions import NotRequired
+
+class ToolError(TypedDict):
+    ok: Literal[False]
+    error: str
+    hint: NotRequired[str]
+
+class ReadOk(TypedDict):
+    ok: Literal[True]
+    path: str
+    content: str
+
+ReadResult: TypeAlias = ReadOk | ToolError
+
+def read_file(path: str) -> ReadResult:
+    ...
+```
+
 ### Pattern 2: Use Modern Union Syntax
 
 Python 3.10+ provides cleaner union syntax.
