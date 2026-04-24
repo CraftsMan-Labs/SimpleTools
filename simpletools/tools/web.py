@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import re
-from typing import Any
+from typing import cast
 from urllib.parse import quote_plus
 
 import httpx
@@ -11,6 +11,12 @@ from bs4 import BeautifulSoup
 from simpletools.context import ToolContext
 from simpletools.http_client import get as http_get
 from simpletools.http_client import post as http_post
+from simpletools.responses.models import (
+    WebExtractResult,
+    WebSearchHit,
+    WebSearchOk,
+    WebSearchResult,
+)
 
 _BACKEND_ERRORS = (
     httpx.HTTPError,
@@ -48,7 +54,7 @@ def _backend_chain() -> list[str]:
     return avail
 
 
-def web_search(_ctx: ToolContext, query: str, max_results: int = 5) -> dict[str, Any]:
+def web_search(_ctx: ToolContext, query: str, max_results: int = 5) -> WebSearchResult:
     query = (query or "").strip()
     if not query:
         return {"ok": False, "error": "empty query"}
@@ -66,14 +72,14 @@ def web_search(_ctx: ToolContext, query: str, max_results: int = 5) -> dict[str,
         except _BACKEND_ERRORS as err:  # pragma: no cover
             last_err = str(err)
             continue
-    out = _ddg_instant_search(query, max_results)
-    note = (out.get("note") or "").strip()
+    ddg: WebSearchOk = cast(WebSearchOk, _ddg_instant_search(query, max_results))
+    note = (ddg.get("note") or "").strip()
     extra = f" Providers tried: {tried or ['none']}. Fallback reason: {last_err}."
-    out["note"] = (note + extra).strip()
-    return out
+    ddg["note"] = (note + extra).strip()
+    return ddg
 
 
-def _search_tavily(query: str, max_results: int) -> dict[str, Any]:
+def _search_tavily(query: str, max_results: int) -> WebSearchResult:
     key = os.environ["TAVILY_API_KEY"]
     r = http_post(
         "https://api.tavily.com/search",
@@ -82,19 +88,19 @@ def _search_tavily(query: str, max_results: int) -> dict[str, Any]:
     )
     r.raise_for_status()
     data = r.json()
-    results = []
+    results: list[WebSearchHit] = []
     for item in data.get("results", [])[:max_results]:
         results.append(
             {
-                "title": item.get("title"),
-                "url": item.get("url"),
+                "title": str(item.get("title") or ""),
+                "url": str(item.get("url") or ""),
                 "content": (item.get("content") or "")[:2000],
             }
         )
     return {"ok": True, "provider": "tavily", "results": results}
 
 
-def _search_exa(query: str, max_results: int) -> dict[str, Any]:
+def _search_exa(query: str, max_results: int) -> WebSearchResult:
     key = os.environ["EXA_API_KEY"]
     r = http_post(
         "https://api.exa.ai/search",
@@ -104,7 +110,7 @@ def _search_exa(query: str, max_results: int) -> dict[str, Any]:
     )
     r.raise_for_status()
     data = r.json()
-    results = []
+    results: list[WebSearchHit] = []
     for i, item in enumerate(data.get("results", [])[:max_results]):
         results.append(
             {
@@ -117,7 +123,7 @@ def _search_exa(query: str, max_results: int) -> dict[str, Any]:
     return {"ok": True, "provider": "exa", "results": results}
 
 
-def _search_firecrawl(query: str, max_results: int) -> dict[str, Any]:
+def _search_firecrawl(query: str, max_results: int) -> WebSearchResult:
     key, base = _firecrawl_config()
     if not key:
         msg = "firecrawl key missing"
@@ -131,7 +137,7 @@ def _search_firecrawl(query: str, max_results: int) -> dict[str, Any]:
     r.raise_for_status()
     data = r.json()
     raw = data.get("data") or data.get("results") or []
-    results: list[dict[str, Any]] = []
+    results: list[WebSearchHit] = []
     for item in raw[:max_results]:
         if not isinstance(item, dict):
             continue
@@ -142,13 +148,13 @@ def _search_firecrawl(query: str, max_results: int) -> dict[str, Any]:
     return {"ok": True, "provider": "firecrawl", "results": results}
 
 
-def _ddg_instant_search(query: str, max_results: int) -> dict[str, Any]:
+def _ddg_instant_search(query: str, max_results: int) -> WebSearchResult:
     url = "https://api.duckduckgo.com/?format=json&no_html=1&skip_disambig=1&q=" + quote_plus(query)
     r = http_get(url, timeout=20.0)
     r.raise_for_status()
     data = r.json()
 
-    results: list[dict[str, Any]] = []
+    results: list[WebSearchHit] = []
     abstract = data.get("Abstract") or ""
     aurl = data.get("AbstractURL") or ""
     atitle = data.get("Heading") or query
@@ -177,7 +183,7 @@ def _ddg_instant_search(query: str, max_results: int) -> dict[str, Any]:
     }
 
 
-def web_extract(_ctx: ToolContext, url: str, max_chars: int = 50_000) -> dict[str, Any]:
+def web_extract(_ctx: ToolContext, url: str, max_chars: int = 50_000) -> WebExtractResult:
     url = (url or "").strip()
     if not url:
         return {"ok": False, "error": "empty url"}
@@ -195,7 +201,7 @@ def web_extract(_ctx: ToolContext, url: str, max_chars: int = 50_000) -> dict[st
     return _extract_html_direct(url, max_chars)
 
 
-def _extract_tavily(u: str, max_chars: int) -> dict[str, Any]:
+def _extract_tavily(u: str, max_chars: int) -> WebExtractResult:
     key = os.environ["TAVILY_API_KEY"]
     r = http_post(
         "https://api.tavily.com/extract",
@@ -218,7 +224,7 @@ def _extract_tavily(u: str, max_chars: int) -> dict[str, Any]:
     }
 
 
-def _extract_exa(u: str, max_chars: int) -> dict[str, Any]:
+def _extract_exa(u: str, max_chars: int) -> WebExtractResult:
     key = os.environ["EXA_API_KEY"]
     r = http_post(
         "https://api.exa.ai/contents",
@@ -239,7 +245,7 @@ def _extract_exa(u: str, max_chars: int) -> dict[str, Any]:
     }
 
 
-def _extract_firecrawl(u: str, max_chars: int) -> dict[str, Any]:
+def _extract_firecrawl(u: str, max_chars: int) -> WebExtractResult:
     key, base = _firecrawl_config()
     if not key:
         msg = "firecrawl key missing"
@@ -263,7 +269,7 @@ def _extract_firecrawl(u: str, max_chars: int) -> dict[str, Any]:
     }
 
 
-def _extract_html_direct(url: str, max_chars: int) -> dict[str, Any]:
+def _extract_html_direct(url: str, max_chars: int) -> WebExtractResult:
     r = http_get(
         url, timeout=45.0, follow_redirects=True, headers={"User-Agent": "simpletools/0.1"}
     )
