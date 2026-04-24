@@ -270,6 +270,22 @@ def get_users() -> list[User]:
     ...
 ```
 
+### `dict[str, Any]` as a catch-all API return
+
+```python
+# BAD: Callers cannot see required keys or error shape
+def run_tool(name: str, **kwargs: object) -> dict[str, Any]:
+    ...
+```
+
+**Fix:** Use `TypedDict` (and unions of success/error models), `dataclasses`, or Pydantic models so static analysis and documentation match the wire format.
+
+```python
+# GOOD
+def run_tool(name: str, **kwargs: object) -> ToolResult:
+    ...
+```
+
 ## Testing Anti-Patterns
 
 ### Only Testing Happy Paths
