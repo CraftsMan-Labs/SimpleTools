@@ -7,11 +7,24 @@ import re
 import subprocess
 from contextlib import suppress
 from pathlib import Path
-from typing import Any
 
 from simpletools.context import ToolContext
 from simpletools.file_safety import is_blocked_device_path, sensitive_write_error
 from simpletools.fuzzy_patch import fuzzy_find_and_replace
+from simpletools.responses.models import (
+    FileReadTrackerState,
+    PatchReplaceOk,
+    PatchResult,
+    PyCompileLint,
+    ReadFileOk,
+    ReadFileResult,
+    SearchFilesOk,
+    SearchFilesResult,
+    SearchMatch,
+    ToolError,
+    WriteFileOk,
+    WriteFileResult,
+)
 
 _DEFAULT_MAX_READ_CHARS = 100_000
 _LARGE_FILE_HINT_BYTES = 512_000
@@ -30,7 +43,7 @@ def _max_read_chars() -> int:
         return v if v > 0 else _DEFAULT_MAX_READ_CHARS
 
 
-def _tracker(ctx: ToolContext) -> dict[str, Any]:
+def _tracker(ctx: ToolContext) -> FileReadTrackerState:
     return ctx.file_read_tracker
 
 
@@ -53,7 +66,7 @@ def read_file(
     path: str,
     offset: int = 1,
     limit: int = 500,
-) -> dict[str, Any]:
+) -> ReadFileResult:
     if is_blocked_device_path(path):
         return {
             "ok": False,
@@ -125,7 +138,7 @@ def read_file(
             "path": path,
         }
 
-    result: dict[str, Any] = {
+    result: ReadFileOk = {
         "ok": True,
         "path": str(p.relative_to(ctx.cwd)) if p.is_relative_to(ctx.cwd) else str(p),
         "content": out,
@@ -144,7 +157,7 @@ def read_file(
     return result
 
 
-def write_file(ctx: ToolContext, path: str, content: str) -> dict[str, Any]:
+def write_file(ctx: ToolContext, path: str, content: str) -> WriteFileResult:
     se = sensitive_write_error(path)
     if se:
         return {"ok": False, "error": se}
@@ -155,7 +168,7 @@ def write_file(ctx: ToolContext, path: str, content: str) -> dict[str, Any]:
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(content, encoding="utf-8")
     _bump_read_ts(ctx, p)
-    out: dict[str, Any] = {"ok": True, "path": str(p.relative_to(ctx.cwd))}
+    out: WriteFileOk = {"ok": True, "path": str(p.relative_to(ctx.cwd))}
     if msg:
         out["_warning"] = msg
     return out
@@ -183,7 +196,7 @@ def _bump_read_ts(ctx: ToolContext, p: Path) -> None:
         _tracker(ctx)["read_ts"][str(p)] = p.stat().st_mtime
 
 
-def _lint_python(path: Path) -> dict[str, Any] | None:
+def _lint_python(path: Path) -> PyCompileLint | None:
     if path.suffix != ".py":
         return None
     proc = subprocess.run(
@@ -212,7 +225,7 @@ def patch(
     old: str | None = None,
     new: str | None = None,
     count: int | None = None,
-) -> dict[str, Any]:
+) -> PatchResult:
     mode = (mode or "replace").lower()
     if old_string is None and old is not None:
         old_string = old
@@ -264,7 +277,7 @@ def patch(
     warn = _stale_warning(ctx, p)
     new_text, n, err = fuzzy_find_and_replace(text, old_string, new_string, replace_all=replace_all)
     if err:
-        err_payload: dict[str, Any] = {"ok": False, "error": err}
+        err_payload: ToolError = {"ok": False, "error": err}
         if "Could not find" in err or "matches" in err:
             err_payload["hint"] = "Re-read the file or use search_files to locate the text."
         return err_payload
@@ -279,7 +292,7 @@ def patch(
     )
     p.write_text(new_text, encoding="utf-8")
     _bump_read_ts(ctx, p)
-    success_payload: dict[str, Any] = {
+    success_payload: PatchReplaceOk = {
         "ok": True,
         "path": path,
         "replacements": n,
@@ -304,7 +317,7 @@ def search_files(
     path: str = ".",
     glob: str | None = None,
     max_matches: int = 200,
-) -> dict[str, Any]:
+) -> SearchFilesResult:
     root = _resolve_under_cwd(ctx, path)
     if root is None:
         return {"ok": False, "error": "path escapes cwd"}
@@ -312,7 +325,7 @@ def search_files(
         return {"ok": False, "error": "search root missing"}
 
     if target == "name":
-        name_hits: list[dict[str, Any]] = []
+        name_hits: list[SearchMatch] = []
         for f in root.rglob(glob or "*"):
             if len(name_hits) >= max_matches:
                 break
@@ -322,7 +335,7 @@ def search_files(
                 name_hits.append({"path": str(f.relative_to(ctx.cwd))})
         return {"ok": True, "mode": "name", "matches": name_hits}
 
-    rg_hits: list[dict[str, Any]] = []
+    rg_hits: list[SearchMatch] = []
     try:
         cmd = ["rg", "--json", "--max-count", str(max_matches), pattern, str(root)]
         proc = subprocess.run(
@@ -357,9 +370,9 @@ def search_files(
 
 def _search_files_python(
     root: Path, cwd: Path, pattern: str, glob_pat: str | None, max_matches: int
-) -> dict[str, Any]:
+) -> SearchFilesOk:
     rx = re.compile(pattern)
-    matches: list[dict[str, Any]] = []
+    matches: list[SearchMatch] = []
     for f in root.rglob(glob_pat or "*"):
         if len(matches) >= max_matches:
             break
