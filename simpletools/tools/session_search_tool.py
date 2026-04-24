@@ -11,6 +11,6 @@ def session_search(ctx: ToolContext, query: str, limit: int = 20) -> SessionSear
 
 
 def index_session(ctx: ToolContext, title: str, summary: str, body: str) -> SessionIndexOk:
-    """Helper (not Hermes-named): persist this session for later session_search."""
+    """Persist this session for later session_search."""
     ctx.store.session_add(ctx.session_id, title, summary, body)
     return {"ok": True, "id": ctx.session_id}

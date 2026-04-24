@@ -5,12 +5,12 @@ build-backend = "hatchling.build"
 [project]
 name = "simpleTools"
 version = "0.1.0"
-description = "Hermes-style agent tools in Python (web, files, terminal, browser, memory, cron, and more)."
+description = "Agent tools in Python (web, files, terminal, browser, memory, cron, and more)."
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [{ name = "simpleTools contributors" }]
-keywords = ["agent", "tools", "llm", "hermes", "automation", "cli", "simpleTools"]
+keywords = ["agent", "tools", "llm", "automation", "cli", "simpleTools"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
@@ -50,7 +50,7 @@ simpleTools = "simpletools.cli:main"
 simpletools = "simpletools.cli:main"
 
 [tool.hatch.build.targets.sdist]
-include = ["simpletools", "tests", "README.md", "LICENSE"]
+include = ["simpletools", "tests", "README.md", "USER_TOOLS.md", "LICENSE"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["simpletools"]

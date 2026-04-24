@@ -1,7 +1,7 @@
 """
 Multi-strategy fuzzy find/replace for file patches.
 
-Behavior matches the Hermes/OpenCode-style eight-strategy chain:
+Eight-strategy fuzzy match chain:
 exact → line-trimmed → whitespace-normalized → indentation-flexible
 → escape-normalized → trimmed-boundary → block-anchor → context-aware.
 
@@ -14,7 +14,7 @@ import re
 from collections.abc import Callable, Sequence
 from difflib import SequenceMatcher
 
-# Smart quotes and invisible-ish characters → ASCII-ish (same mapping idea as Hermes)
+# Smart quotes and invisible-ish characters → ASCII-ish
 _UNICODE_REPLACEMENTS: dict[str, str] = {
     "\u201c": '"',
     "\u201d": '"',

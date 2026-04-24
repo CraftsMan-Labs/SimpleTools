@@ -1,4 +1,4 @@
-"""File-backed curated memory (Hermes-style MEMORY.md / USER.md, §-delimited entries)."""
+"""File-backed curated memory (MEMORY.md / USER.md, §-delimited entries)."""
 
 from __future__ import annotations
 

@@ -34,7 +34,7 @@ TOOLS: dict[str, tuple[ToolFn, str]] = {
     "search_files": (file_ops_mod.search_files, "Search by content or filename."),
     "patch": (
         file_ops_mod.patch,
-        "Replace mode: fuzzy multi-strategy match (Hermes-style) or V4A patch mode=patch.",
+        "Replace mode: fuzzy multi-strategy match or V4A patch mode=patch.",
     ),
     "terminal": (terminal_mod.terminal, "Run shell command (optional background)."),
     "process": (terminal_mod.process, "Manage background processes."),
@@ -56,7 +56,7 @@ TOOLS: dict[str, tuple[ToolFn, str]] = {
     "delegate_task": (delegate_mod.delegate_task, "Subtasks via on_delegate callback."),
     "memory": (
         memory_mod.memory,
-        "File-backed MEMORY.md/USER.md (Hermes-style add/replace/remove/read).",
+        "File-backed MEMORY.md/USER.md (add/replace/remove/read).",
     ),
     "session_search": (session_mod.session_search, "Search indexed sessions."),
     "session_index": (

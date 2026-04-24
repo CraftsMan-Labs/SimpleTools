@@ -1,4 +1,4 @@
-"""Path safety rules aligned with Hermes file_tools guards (device reads, sensitive writes)."""
+"""Path safety rules for agent file tools (device reads, sensitive writes)."""
 
 from __future__ import annotations
 

@@ -15,7 +15,7 @@ _LOG = logging.getLogger(__name__)
 
 
 class ToolRunner:
-    """Dispatches Hermes-style tools (subset) on a shared ToolContext."""
+    """Dispatches registered tools (subset) on a shared ToolContext."""
 
     def __init__(
         self,

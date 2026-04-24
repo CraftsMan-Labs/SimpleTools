@@ -10,7 +10,7 @@ from simpletools.responses.models import CronJobRow, HonchoCard, HonchoSearchRow
 
 
 class Store:
-    """SQLite persistence for sessions, honcho, cron (memory/todos are Hermes-style elsewhere)."""
+    """SQLite persistence for sessions, honcho, cron (memory/todos use file-backed stores elsewhere)."""
 
     def __init__(self, path: Path) -> None:
         self.path = path

@@ -48,7 +48,7 @@ def _tracker(ctx: ToolContext) -> FileReadTrackerState:
 
 
 def reset_file_read_loops(ctx: ToolContext) -> None:
-    """Hermes resets consecutive read counter when non-read/search tools run."""
+    """Reset consecutive read counter when non-read/search tools run."""
     t = _tracker(ctx)
     t["last_key"] = None
     t["consecutive"] = 0

@@ -38,7 +38,7 @@ def _firecrawl_config() -> tuple[str | None, str | None]:
 
 
 def _backend_chain() -> list[str]:
-    """Hermes-style priority: optional SIMPLETOOLS_WEB_BACKEND, else firecrawl→tavily→exa (Parallel needs SDK)."""
+    """Search backend priority: optional SIMPLETOOLS_WEB_BACKEND, else firecrawl→tavily→exa (Parallel needs SDK)."""
     cfg = (os.environ.get("SIMPLETOOLS_WEB_BACKEND") or "").lower().strip()
     chain = ["firecrawl", "tavily", "exa"]
     avail: list[str] = []

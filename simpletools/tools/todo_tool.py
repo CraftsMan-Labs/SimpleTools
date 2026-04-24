@@ -58,7 +58,7 @@ def todo(
     todos: list[dict[str, Any]] | None = None,
     merge: bool = False,
 ) -> TodoResult:
-    """Session todo list (Hermes-style: id, content, status; merge updates by id)."""
+    """Session todo list (id, content, status; merge updates by id)."""
     if todos is None:
         items = [i.copy() for i in _store(ctx)]
     else:

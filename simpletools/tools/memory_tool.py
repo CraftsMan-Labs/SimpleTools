@@ -13,7 +13,7 @@ def memory(
     new_content: str | None = None,
 ) -> MemoryToolResult:
     """
-    Hermes-aligned curated memory: MEMORY.md / USER.md (§-delimited) under data_dir/memories.
+    Curated file-backed memory: MEMORY.md / USER.md (§-delimited) under data_dir/memories.
 
     Actions: add, replace, remove, read. Targets: memory | user.
     """

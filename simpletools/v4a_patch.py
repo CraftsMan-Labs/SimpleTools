@@ -1,4 +1,4 @@
-"""V4A unified-diff-style patch parse/apply (subset of Hermes patch_parser behavior)."""
+"""V4A unified-diff-style patch parse/apply (unified diff subset)."""
 
 from __future__ import annotations
 
