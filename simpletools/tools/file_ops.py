@@ -221,7 +221,7 @@ def patch(
     new_string: str | None = None,
     replace_all: bool = False,
     patch: str | None = None,
-    # legacy kwargs from earlier SimpleTools API
+    # legacy kwargs from earlier SimpleAgentTools API
     old: str | None = None,
     new: str | None = None,
     count: int | None = None,

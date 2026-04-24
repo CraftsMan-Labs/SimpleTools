@@ -1,9 +1,9 @@
-# simpleTools: built-in tools
+# simpleAgentTools: built-in tools
 
 This project ships a fixed registry of tools (see [`simpletools/registry.py`](simpletools/registry.py)). Use the CLI to list names and descriptions:
 
 ```bash
-simpleTools list
+simpleAgentTools list
 ```
 
 ## Included capabilities (by area)

@@ -9,7 +9,7 @@ from simpletools.registry import list_tools
 
 def main(argv: list[str] | None = None) -> None:
     argv = argv if argv is not None else sys.argv[1:]
-    p = argparse.ArgumentParser(description="simpleTools — Python agent tools (subset).")
+    p = argparse.ArgumentParser(description="simpleAgentTools — Python agent tools (subset).")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     lp = sub.add_parser("list", help="List built-in tool names.")
