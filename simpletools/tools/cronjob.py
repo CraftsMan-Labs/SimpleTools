@@ -8,6 +8,7 @@ from typing import Any, cast
 from croniter import croniter
 
 from simpletools.context import ToolContext
+from simpletools.responses.models import CronResult
 
 
 def cronjob(
@@ -17,7 +18,7 @@ def cronjob(
     spec: str | None = None,
     payload: dict[str, Any] | None = None,
     enabled: bool | None = None,
-) -> dict[str, Any]:
+) -> CronResult:
     action = (action or "").lower()
     if action == "list":
         return {"ok": True, "jobs": ctx.store.cron_list()}
@@ -110,7 +111,7 @@ def cronjob(
     return {"ok": False, "error": f"unknown action {action}"}
 
 
-def _run_payload(ctx: ToolContext, payload: dict[str, Any]) -> dict[str, Any]:
+def _run_payload(ctx: ToolContext, payload: dict[str, Any]) -> CronResult:
     kind = payload.get("kind", "python")
     if kind == "python":
         from simpletools.tools.execute_code import execute_code
