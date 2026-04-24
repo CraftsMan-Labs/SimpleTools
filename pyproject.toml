@@ -1,0 +1,139 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "simpletools"
+version = "0.1.0"
+description = "Hermes-style agent tools in Python (web, files, terminal, browser, memory, cron, and more)."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [{ name = "SimpleTools contributors" }]
+keywords = ["agent", "tools", "llm", "hermes", "automation", "cli"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+]
+dependencies = [
+  "httpx>=0.27",
+  "beautifulsoup4>=4.12",
+  "croniter>=2.0",
+  "tenacity>=9.0",
+]
+
+[project.optional-dependencies]
+browser = ["playwright>=1.40"]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.9",
+  "mypy>=1.20",
+  "pyright>=1.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/rishub/SimpleTools"
+Repository = "https://github.com/rishub/SimpleTools"
+Issues = "https://github.com/rishub/SimpleTools/issues"
+Changelog = "https://github.com/rishub/SimpleTools/releases"
+
+[project.scripts]
+simpletools = "simpletools.cli:main"
+
+[tool.hatch.build.targets.sdist]
+include = ["simpletools", "tests", "README.md", "LICENSE"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["simpletools"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["simpletools", "tests"]
+
+[tool.ruff.lint]
+select = [
+  "E",
+  "W",
+  "F",
+  "I",
+  "UP",
+  "B",
+  "BLE",  # blind except (anti-patterns)
+  "DTZ",  # naive datetime
+  "EM",   # exception messages
+  "PTH", # pathlib over os.path where sensible
+  "RET", # return
+  "RUF", # ruff-specific
+  "SIM", # simplify
+  "T10", # debugger
+  "T20", # print (production code)
+  "TRY", # tryceratops exception hygiene
+  "ASYNC",
+  "S",   # bandit security (anti-patterns / secrets)
+  "PLR", # refactor complexity (design: catch god-functions)
+  "PLW",
+]
+ignore = [
+  "E501",
+  "S101", # assert in tests
+  "S603", # subprocess: full audit not practical for tool wrappers
+  "S607", # partial executable path
+  "TRY003", # long messages without exception class — keep tool-facing errors
+]
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "T20"]
+"simpletools/cli.py" = ["T20"]
+"simpletools/v4a_patch.py" = ["PLR0912", "PLR0915"]
+"simpletools/fuzzy_patch.py" = ["SIM108", "PLR2004"]
+"simpletools/tools/clarify.py" = ["T20"]
+"simpletools/tools/terminal.py" = ["S602"]
+"simpletools/tools/todo_tool.py" = ["SIM108"]
+"simpletools/tools/memory_tool.py" = ["PLR0911"]
+"simpletools/tools/file_ops.py" = ["PLR0911", "PLR0913"]
+"simpletools/tools/cronjob.py" = ["PLR0911"]
+
+[tool.ruff.lint.pylint]
+max-args = 8
+max-branches = 18
+max-returns = 8
+max-statements = 60
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_unreachable = true
+show_error_codes = true
+namespace_packages = true
+explicit_package_bases = true
+mypy_path = ["."]
+packages = ["simpletools"]
+
+[[tool.mypy.overrides]]
+module = ["playwright.*", "croniter.*", "bs4.*"]
+ignore_missing_imports = true
+
+[tool.pyright]
+pythonVersion = "3.10"
+typeCheckingMode = "strict"
+include = ["simpletools"]
+exclude = ["**/__pycache__", ".venv"]
+reportMissingImports = true
+reportUnknownMemberType = false
+reportUnknownArgumentType = false
+reportUnknownVariableType = false
