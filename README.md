@@ -1,5 +1,16 @@
 # simpleAgentTools
 
+[![GitHub Stars](https://img.shields.io/github/stars/CraftsMan-Labs/SimpleTools?style=flat-square)](https://github.com/CraftsMan-Labs/SimpleTools/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/CraftsMan-Labs/SimpleTools?style=flat-square)](https://github.com/CraftsMan-Labs/SimpleTools/network/members)
+[![GitHub Issues](https://img.shields.io/github/issues/CraftsMan-Labs/SimpleTools?style=flat-square)](https://github.com/CraftsMan-Labs/SimpleTools/issues)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square)](LICENSE)
+
+[![PyPI Version](https://img.shields.io/pypi/v/simpleagenttools?style=flat-square&logo=python)](https://pypi.org/project/simpleagenttools/)
+[![PyPI - Python](https://img.shields.io/pypi/pyversions/simpleagenttools?style=flat-square&logo=python)](https://pypi.org/project/simpleagenttools/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/simpleagenttools?style=flat-square)](https://pypi.org/project/simpleagenttools/)
+
+**Stats:** **36** built-in tools (see [Agent toolkit](#agent-toolkit)) · **Python 3.10+** · **Apache-2.0** · PyPI [`simpleagenttools`](https://pypi.org/project/simpleagenttools/) · `pip install simpleAgentTools`
+
 Python agent tools: web, browser (optional Playwright), terminal, files, vision (OpenAI-compatible), todo, clarify, code execution, delegation (callback), memory, session search, cron, messaging hooks, Honcho-like local profile, and skills on disk.
 
 This repository is the **simpleAgentTools** distribution on PyPI ([project page](https://pypi.org/project/simpleagenttools/) — PyPI normalizes the name to lowercase in URLs). The importable Python package is **`simpletools`**. Builds and installs are driven by **[uv](https://docs.astral.sh/uv/)**.
@@ -66,6 +77,12 @@ uv lock
 ## Install (users)
 
 ```bash
+pip install simpleAgentTools
+```
+
+`pip` treats the PyPI name case-insensitively; the same package is available as `pip install simpleagenttools`.
+
+```bash
 uv tool install simpleAgentTools
 # or
 uv pip install simpleAgentTools
@@ -73,21 +90,6 @@ uv pip install simpleAgentTools
 uv pip install "simpleAgentTools[browser]"
 playwright install chromium
 ```
-
-## PyPI release
-
-1. Bump `version` in [`pyproject.toml`](pyproject.toml).
-2. Run `uv lock` (if dependencies changed) and `uv build`.
-3. **Local publish:** use **`make publish-doppler`**. Put a [PyPI API token](https://pypi.org/manage/account/token/) in Doppler as **`PYPI_TOKEN`** (recommended), or **`UV_PUBLISH_TOKEN`**, or **`V_PUBLISH_TOKEN`** (SimpleAgents’ `publish-python` alias). That target runs **preflight and the real upload inside one `doppler run`**, so `uv publish --dry-run` and `uv publish` both see the token—no interactive **“Enter username (`__token__`)…”** prompts. Doppler still needs **which project and config** to load. Use any one of these:
-
-   - **Recommended:** from the repo root run **`doppler setup`**, pick your Doppler project and config (e.g. `dev`). That stores the mapping for this directory so plain `doppler run` works.
-   - **Environment:** `export DOPPLER_PROJECT=your-project` and `export DOPPLER_CONFIG=dev` (or `prd`), then **`make publish-doppler`**.
-   - **Make flags:** `make publish-doppler DOPPLER_OPTS='--project your-project --config dev'` (short form: **`-p`** / **`-c`**, e.g. `DOPPLER_OPTS='-p your-project -c dev'`).
-
-   Put **`PYPI_TOKEN`** (or **`UV_PUBLISH_TOKEN`** / **`V_PUBLISH_TOKEN`**) in that Doppler config. See the Doppler docs for [CLI](https://docs.doppler.com/docs/cli) and [secrets setup](https://docs.doppler.com/docs/secrets-setup-guide) (including **`-p` / `--project`** and **`-c` / `--config`** on `doppler run`).
-4. **CI publish:** GitHub Actions [`.github/workflows/publish.yml`](.github/workflows/publish.yml) runs on **release published** and passes **`PYPI_TOKEN`** to `uv` (falls back to **`PYPI_API_TOKEN`** if **`PYPI_TOKEN`** is unset). Add one of those [repository secrets](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions) with your PyPI token.
-
-Trusted publishing (OIDC) can be enabled later via `uv publish --trusted-publishing always` once the PyPI project is configured for it.
 
 ## Usage
 

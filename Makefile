@@ -122,24 +122,24 @@ version-get:
 
 version-next-patch:
 	@current=$$($(MAKE) --no-print-directory version-get); \
-	IFS='.' read -r major minor patch <<< "$$current"; \
+	major=$${current%%.*}; rest=$${current#*.}; minor=$${rest%%.*}; patch=$${rest#*.}; \
 	patch=$$((patch + 1)); \
 	echo "$$major.$$minor.$$patch"
 
 version-next-minor:
 	@current=$$($(MAKE) --no-print-directory version-get); \
-	IFS='.' read -r major minor patch <<< "$$current"; \
+	major=$${current%%.*}; rest=$${current#*.}; minor=$${rest%%.*}; patch=$${rest#*.}; \
 	minor=$$((minor + 1)); \
 	echo "$$major.$$minor.0"
 
 version-next-major:
 	@current=$$($(MAKE) --no-print-directory version-get); \
-	IFS='.' read -r major minor patch <<< "$$current"; \
+	major=$${current%%.*}; rest=$${current#*.}; minor=$${rest%%.*}; patch=$${rest#*.}; \
 	major=$$((major + 1)); \
 	echo "$$major.0.0"
 
 define bump_version
-	@case " $(MAKEFLAGS) " in *" -n "*|*" --just-print "*|*" --dry-run "*); \
+	@case " $(MAKEFLAGS) " in *" -n "*|*" --just-print "*|*" --dry-run "* ) \
 		echo "Error: $(1) cannot run with -n/--just-print/--dry-run"; \
 		exit 1; \
 	esac; \
@@ -158,24 +158,24 @@ endef
 
 version-patch:
 	$(call bump_version,version-patch,\
-	IFS='.' read -r major minor patch <<< "$$current"; \
+	major=$${current%%.*}; rest=$${current#*.}; minor=$${rest%%.*}; patch=$${rest#*.}; \
 	patch=$$((patch + 1)); \
 	new="$$major.$$minor.$$patch")
 
 version-minor:
 	$(call bump_version,version-minor,\
-	IFS='.' read -r major minor patch <<< "$$current"; \
+	major=$${current%%.*}; rest=$${current#*.}; minor=$${rest%%.*}; patch=$${rest#*.}; \
 	minor=$$((minor + 1)); \
 	new="$$major.$$minor.0")
 
 version-major:
 	$(call bump_version,version-major,\
-	IFS='.' read -r major minor patch <<< "$$current"; \
+	major=$${current%%.*}; rest=$${current#*.}; minor=$${rest%%.*}; patch=$${rest#*.}; \
 	major=$$((major + 1)); \
 	new="$$major.0.0")
 
 version-set:
-	@case " $(MAKEFLAGS) " in *" -n "*|*" --just-print "*|*" --dry-run "*); \
+	@case " $(MAKEFLAGS) " in *" -n "*|*" --just-print "*|*" --dry-run "* ) \
 		echo "Error: version-set cannot run with -n/--just-print/--dry-run"; \
 		exit 1; \
 	esac; \
