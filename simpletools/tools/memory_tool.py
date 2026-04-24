@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from typing import Any
-
 from simpletools.context import ToolContext
+from simpletools.responses.models import MemoryToolResult
 
 
 def memory(
@@ -12,7 +11,7 @@ def memory(
     content: str | None = None,
     old_text: str | None = None,
     new_content: str | None = None,
-) -> dict[str, Any]:
+) -> MemoryToolResult:
     """
     Hermes-aligned curated memory: MEMORY.md / USER.md (§-delimited) under data_dir/memories.
 
