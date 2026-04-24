@@ -8,9 +8,15 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import IO, Any, cast
+from typing import IO, cast
 
 from simpletools.context import ToolContext
+from simpletools.responses.models import (
+    ProcessResult,
+    TerminalOk,
+    TerminalResult,
+    TerminalTimeout,
+)
 
 
 @dataclass
@@ -36,7 +42,7 @@ def terminal(
     cwd: str | None = None,
     timeout: float = 180.0,
     background: bool = False,
-) -> dict[str, Any]:
+) -> TerminalResult:
     """Run a shell command. Optional background mode returns session_id for `process`."""
     work = Path(cwd or ctx.cwd).resolve()
     if not str(work).startswith(str(ctx.cwd.resolve())):
@@ -54,19 +60,22 @@ def terminal(
                 env={**os.environ},
                 check=False,
             )
-            return {
-                "ok": True,
-                "exit_code": proc.returncode,
-                "stdout": proc.stdout[-200_000:],
-                "stderr": proc.stderr[-200_000:],
-            }
         except subprocess.TimeoutExpired as e:
-            return {
+            tout: TerminalTimeout = {
                 "ok": False,
                 "error": "timeout",
-                "stdout": e.stdout or "",
-                "stderr": e.stderr or "",
+                "stdout": str(e.stdout or ""),
+                "stderr": str(e.stderr or ""),
             }
+            return tout
+        else:
+            ok: TerminalOk = {
+                "ok": True,
+                "exit_code": proc.returncode,
+                "stdout": str(proc.stdout or "")[-200_000:],
+                "stderr": str(proc.stderr or "")[-200_000:],
+            }
+            return ok
 
     sid = "proc_" + uuid.uuid4().hex[:12]
     p = subprocess.Popen(
@@ -106,7 +115,7 @@ def process(
     action: str,
     session_id: str | None = None,
     timeout: float | None = None,
-) -> dict[str, Any]:
+) -> ProcessResult:
     """Manage background processes: list, poll, log, wait, kill."""
     reg = _registry(ctx)
     action = (action or "").lower().strip()
