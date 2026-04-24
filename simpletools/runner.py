@@ -9,6 +9,7 @@ from typing import Any
 
 from simpletools.context import ToolContext
 from simpletools.registry import call_tool
+from simpletools.responses.models import ToolResult
 
 _LOG = logging.getLogger(__name__)
 
@@ -20,9 +21,8 @@ class ToolRunner:
         self,
         cwd: Path | None = None,
         data_dir: Path | None = None,
-        on_delegate: Callable[[str, ToolContext], dict[str, Any]] | None = None,
-        message_senders: dict[str, Callable[[str, str, dict[str, Any]], dict[str, Any]]]
-        | None = None,
+        on_delegate: Callable[[str, ToolContext], ToolResult] | None = None,
+        message_senders: dict[str, Callable[[str, str, dict[str, Any]], ToolResult]] | None = None,
         enable_cron_scheduler: bool = False,
     ) -> None:
         self.ctx = ToolContext.default(cwd=cwd, data_dir=data_dir)
@@ -39,7 +39,7 @@ class ToolRunner:
         if self._cron_thread:
             self._cron_thread.join(timeout=2.0)
 
-    def call(self, name: str, **kwargs: Any) -> dict[str, Any]:
+    def call(self, name: str, **kwargs: Any) -> ToolResult:
         if name not in ("read_file", "search_files"):
             from simpletools.tools import file_ops as _fo
 
