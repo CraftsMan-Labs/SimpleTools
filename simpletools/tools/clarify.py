@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-from typing import Any
-
 from simpletools.context import ToolContext
+from simpletools.responses.models import ClarifyResult
 
 
 def clarify(
     ctx: ToolContext,
     prompt: str,
     choices: list[str] | None = None,
-) -> dict[str, Any]:
+) -> ClarifyResult:
     """CLI: prompt user on stdin. Non-interactive: return pending payload (caller must supply answer out-of-band)."""
     import sys
 
