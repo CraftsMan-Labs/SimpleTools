@@ -501,6 +501,7 @@ dependencies = [
     { name = "croniter" },
     { name = "httpx" },
     { name = "tenacity" },
+    { name = "typing-extensions" },
 ]
 
 [package.optional-dependencies]
@@ -525,6 +526,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.9" },
     { name = "tenacity", specifier = ">=9.0" },
+    { name = "typing-extensions", specifier = ">=4.12" },
 ]
 provides-extras = ["browser", "dev"]
 

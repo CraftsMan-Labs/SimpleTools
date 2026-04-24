@@ -27,6 +27,7 @@ dependencies = [
   "beautifulsoup4>=4.12",
   "croniter>=2.0",
   "tenacity>=9.0",
+  "typing-extensions>=4.12",
 ]
 
 [project.optional-dependencies]
