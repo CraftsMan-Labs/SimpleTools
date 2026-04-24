@@ -1,14 +1,12 @@
-# simpleTools
+# simpleAgentTools
 
 Python agent tools: web, browser (optional Playwright), terminal, files, vision (OpenAI-compatible), todo, clarify, code execution, delegation (callback), memory, session search, cron, messaging hooks, Honcho-like local profile, and skills on disk.
 
-**Excluded** (per request): image generation, TTS, Home Assistant, mixture-of-agents, RL.
-
-This repository is the **simpleTools** distribution on PyPI ([project page](https://pypi.org/project/simpletools/) — PyPI normalizes the name to lowercase in URLs). The importable Python package is **`simpletools`**. Builds and installs are driven by **[uv](https://docs.astral.sh/uv/)**.
+This repository is the **simpleAgentTools** distribution on PyPI ([project page](https://pypi.org/project/simpleagenttools/) — PyPI normalizes the name to lowercase in URLs). The importable Python package is **`simpletools`**. Builds and installs are driven by **[uv](https://docs.astral.sh/uv/)**.
 
 ## Agent toolkit
 
-Tools are registered in [`simpletools/registry.py`](simpletools/registry.py) (`TOOLS`). Host code wires a [`ToolContext`](simpletools/context.py) and calls [`ToolRunner.call`](simpletools/runner.py) or [`registry.call_tool`](simpletools/registry.py). The CLI can list the same names: `simpleTools list` (the `simpletools` command is an alias).
+Tools are registered in [`simpletools/registry.py`](simpletools/registry.py) (`TOOLS`). Host code wires a [`ToolContext`](simpletools/context.py) and calls [`ToolRunner.call`](simpletools/runner.py) or [`registry.call_tool`](simpletools/registry.py). The CLI can list the same names: `simpleAgentTools list` (the `simpletools` command is an alias).
 
 | Tool | What it does |
 | --- | --- |
@@ -68,11 +66,11 @@ uv lock
 ## Install (users)
 
 ```bash
-uv tool install simpleTools
+uv tool install simpleAgentTools
 # or
-uv pip install simpleTools
+uv pip install simpleAgentTools
 # optional browser automation
-uv pip install "simpleTools[browser]"
+uv pip install "simpleAgentTools[browser]"
 playwright install chromium
 ```
 
@@ -80,8 +78,14 @@ playwright install chromium
 
 1. Bump `version` in [`pyproject.toml`](pyproject.toml).
 2. Run `uv lock` (if dependencies changed) and `uv build`.
-3. **Local publish:** `uv publish` with `UV_PUBLISH_TOKEN` set to a [PyPI API token](https://pypi.org/manage/account/token/) (scope: project **simpleTools** / `simpletools` on PyPI).
-4. **CI publish:** GitHub Actions [`.github/workflows/publish.yml`](.github/workflows/publish.yml) runs on **release published** and expects a repo secret `PYPI_API_TOKEN`.
+3. **Local publish:** use **`make publish-doppler`**. Put a [PyPI API token](https://pypi.org/manage/account/token/) in Doppler as **`PYPI_TOKEN`** (recommended), or **`UV_PUBLISH_TOKEN`**, or **`V_PUBLISH_TOKEN`** (SimpleAgents’ `publish-python` alias). That target runs **preflight and the real upload inside one `doppler run`**, so `uv publish --dry-run` and `uv publish` both see the token—no interactive **“Enter username (`__token__`)…”** prompts. Doppler still needs **which project and config** to load. Use any one of these:
+
+   - **Recommended:** from the repo root run **`doppler setup`**, pick your Doppler project and config (e.g. `dev`). That stores the mapping for this directory so plain `doppler run` works.
+   - **Environment:** `export DOPPLER_PROJECT=your-project` and `export DOPPLER_CONFIG=dev` (or `prd`), then **`make publish-doppler`**.
+   - **Make flags:** `make publish-doppler DOPPLER_OPTS='--project your-project --config dev'` (short form: **`-p`** / **`-c`**, e.g. `DOPPLER_OPTS='-p your-project -c dev'`).
+
+   Put **`PYPI_TOKEN`** (or **`UV_PUBLISH_TOKEN`** / **`V_PUBLISH_TOKEN`**) in that Doppler config. See the Doppler docs for [CLI](https://docs.doppler.com/docs/cli) and [secrets setup](https://docs.doppler.com/docs/secrets-setup-guide) (including **`-p` / `--project`** and **`-c` / `--config`** on `doppler run`).
+4. **CI publish:** GitHub Actions [`.github/workflows/publish.yml`](.github/workflows/publish.yml) runs on **release published** and passes **`PYPI_TOKEN`** to `uv` (falls back to **`PYPI_API_TOKEN`** if **`PYPI_TOKEN`** is unset). Add one of those [repository secrets](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions) with your PyPI token.
 
 Trusted publishing (OIDC) can be enabled later via `uv publish --trusted-publishing always` once the PyPI project is configured for it.
 
@@ -99,8 +103,8 @@ print(r.call("memory", action="add", target="memory", content="Uses uv for packa
 CLI:
 
 ```bash
-simpleTools list
-simpleTools call memory --args '{"action":"read"}'
+simpleAgentTools list
+simpleAgentTools call memory --args '{"action":"read"}'
 ```
 
 ## Configuration
@@ -108,10 +112,6 @@ simpleTools call memory --args '{"action":"read"}'
 Environment highlights: `FIRECRAWL_API_KEY` / `FIRECRAWL_API_URL`, `TAVILY_API_KEY`, `EXA_API_KEY`, optional `SIMPLETOOLS_WEB_BACKEND` (`firecrawl`, `tavily`, or `exa`), `OPENAI_*` for vision, `SIMPLETOOLS_DATA_DIR`, `SIMPLETOOLS_FILE_READ_MAX_CHARS`, `SIMPLETOOLS_SKILLS_DIR`.
 
 **Behavior notes:** multi-strategy fuzzy `patch` replace, optional `mode="patch"` V4A hunks, file read guards (device blocklist, char cap, repeat-read loop), configurable web search backends, file-backed `memory` (`memories/MEMORY.md` + `USER.md`, `§` entries), session todos with `content`/`status`.
-
-## Code quality (Cursor skills)
-
-Project-local guidance lives under [`.cursor/skills/`](.cursor/skills/) (e.g. `python-project-structure`, `python-type-safety`, `python-anti-patterns`). **Ruff** in [`pyproject.toml`](pyproject.toml) enforces a consistent style in CI and locally via `uv run ruff …`.
 
 ## Acknowledgments
 
