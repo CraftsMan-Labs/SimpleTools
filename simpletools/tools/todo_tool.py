@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import Any
+from typing import Any, cast
 
 from simpletools.context import ToolContext
+from simpletools.responses.models import TodoItem, TodoResult
 
 VALID_STATUSES = frozenset({"pending", "in_progress", "completed", "cancelled"})
 
@@ -56,7 +57,7 @@ def todo(
     ctx: ToolContext,
     todos: list[dict[str, Any]] | None = None,
     merge: bool = False,
-) -> dict[str, Any]:
+) -> TodoResult:
     """Session todo list (Hermes-style: id, content, status; merge updates by id)."""
     if todos is None:
         items = [i.copy() for i in _store(ctx)]
@@ -68,7 +69,7 @@ def todo(
     cancelled = sum(1 for i in items if i["status"] == "cancelled")
     return {
         "ok": True,
-        "todos": items,
+        "todos": cast(list[TodoItem], items),
         "summary": {
             "total": len(items),
             "pending": pending,
