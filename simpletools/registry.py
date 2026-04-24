@@ -4,6 +4,7 @@ from collections.abc import Callable
 from typing import Any
 
 from simpletools.context import ToolContext
+from simpletools.responses.models import ToolListingRow, ToolResult, UnknownToolResponse
 from simpletools.tools import browser as browser_mod
 from simpletools.tools import clarify as clarify_mod
 from simpletools.tools import cronjob as cronjob_mod
@@ -20,7 +21,7 @@ from simpletools.tools import todo_tool as todo_mod
 from simpletools.tools import vision as vision_mod
 from simpletools.tools import web as web_mod
 
-ToolFn = Callable[..., dict[str, Any]]
+ToolFn = Callable[..., ToolResult]
 
 TOOLS: dict[str, tuple[ToolFn, str]] = {
     "web_search": (
@@ -74,12 +75,13 @@ TOOLS: dict[str, tuple[ToolFn, str]] = {
 }
 
 
-def list_tools() -> list[dict[str, str]]:
+def list_tools() -> list[ToolListingRow]:
     return [{"name": k, "description": v[1]} for k, v in sorted(TOOLS.items())]
 
 
-def call_tool(ctx: ToolContext, name: str, **kwargs: Any) -> dict[str, Any]:
+def call_tool(ctx: ToolContext, name: str, **kwargs: Any) -> ToolResult:
     if name not in TOOLS:
-        return {"ok": False, "error": f"unknown tool: {name}"}
+        err: UnknownToolResponse = {"ok": False, "error": f"unknown tool: {name}"}
+        return err
     fn = TOOLS[name][0]
     return fn(ctx, **kwargs)
