@@ -20,4 +20,5 @@ jobs:
       - name: Publish with uv
         run: uv publish
         env:
-          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+          # Prefer PYPI_TOKEN; keep PYPI_API_TOKEN for older repo configurations
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN || secrets.PYPI_API_TOKEN }}
