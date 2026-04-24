@@ -6,6 +6,8 @@ import time
 from pathlib import Path
 from typing import Any, cast
 
+from simpletools.responses.models import CronJobRow, HonchoCard, HonchoSearchRow, SessionIndexRow
+
 
 class Store:
     """SQLite persistence for sessions, honcho, cron (memory/todos are Hermes-style elsewhere)."""
@@ -66,7 +68,7 @@ class Store:
                 (sid, title, summary, body, time.time()),
             )
 
-    def session_search(self, query: str, limit: int = 20) -> list[dict[str, Any]]:
+    def session_search(self, query: str, limit: int = 20) -> list[SessionIndexRow]:
         q = f"%{query}%"
         with self._conn() as c:
             rows = c.execute(
@@ -78,16 +80,16 @@ class Store:
                 """,
                 (q, q, q, limit),
             ).fetchall()
-            return [dict(r) for r in rows]
+            return [cast(SessionIndexRow, dict(r)) for r in rows]
 
-    def honcho_profile_get(self) -> dict[str, Any] | None:
+    def honcho_profile_get(self) -> HonchoCard | None:
         with self._conn() as c:
             row = c.execute("SELECT card_json FROM honcho_profile WHERE id = 1").fetchone()
             if not row:
                 return None
-            return cast(dict[str, Any], json.loads(str(row["card_json"])))
+            return cast(HonchoCard, json.loads(str(row["card_json"])))
 
-    def honcho_profile_set(self, card: dict[str, Any]) -> None:
+    def honcho_profile_set(self, card: HonchoCard) -> None:
         with self._conn() as c:
             c.execute(
                 "INSERT INTO honcho_profile(id,card_json,updated) VALUES(1,?,?) ON CONFLICT(id) DO UPDATE SET card_json=excluded.card_json, updated=excluded.updated",
@@ -105,19 +107,19 @@ class Store:
             )
         return fid
 
-    def honcho_search(self, query: str, limit: int = 20) -> list[dict[str, Any]]:
+    def honcho_search(self, query: str, limit: int = 20) -> list[HonchoSearchRow]:
         q = f"%{query}%"
         with self._conn() as c:
             rows = c.execute(
                 "SELECT id, content, created FROM honcho_facts WHERE content LIKE ? ORDER BY created DESC LIMIT ?",
                 (q, limit),
             ).fetchall()
-            return [dict(r) for r in rows]
+            return [cast(HonchoSearchRow, dict(r)) for r in rows]
 
-    def cron_list(self) -> list[dict[str, Any]]:
+    def cron_list(self) -> list[CronJobRow]:
         with self._conn() as c:
             rows = c.execute("SELECT * FROM cron_jobs ORDER BY id").fetchall()
-            return [dict(r) for r in rows]
+            return [cast(CronJobRow, dict(r)) for r in rows]
 
     def cron_upsert(self, job: dict[str, Any]) -> None:
         with self._conn() as c:
@@ -130,10 +132,10 @@ class Store:
                 job,
             )
 
-    def cron_get(self, jid: str) -> dict[str, Any] | None:
+    def cron_get(self, jid: str) -> CronJobRow | None:
         with self._conn() as c:
             row = c.execute("SELECT * FROM cron_jobs WHERE id = ?", (jid,)).fetchone()
-            return dict(row) if row else None
+            return cast(CronJobRow, dict(row)) if row else None
 
     def cron_delete(self, jid: str) -> None:
         with self._conn() as c:
