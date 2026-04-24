@@ -1,6 +1,6 @@
 # simpleTools
 
-Python equivalents of common Hermes-style agent tool names: web, browser (optional Playwright), terminal, files, vision (OpenAI-compatible), todo, clarify, code execution, delegation (callback), memory, session search, cron, messaging hooks, Honcho-like local profile, and skills on disk.
+Python agent tools: web, browser (optional Playwright), terminal, files, vision (OpenAI-compatible), todo, clarify, code execution, delegation (callback), memory, session search, cron, messaging hooks, Honcho-like local profile, and skills on disk.
 
 **Excluded** (per request): image generation, TTS, Home Assistant, mixture-of-agents, RL.
 
@@ -31,8 +31,8 @@ Tools are registered in [`simpletools/registry.py`](simpletools/registry.py) (`T
 | `honcho_context` | Concatenate matching facts. |
 | `honcho_profile` | Peer card JSON. |
 | `honcho_search` | Search stored facts. |
-| `memory` | File-backed `MEMORY.md`/`USER.md` (Hermes-style add/replace/remove/read). |
-| `patch` | Replace mode: fuzzy multi-strategy match (Hermes-style) or V4A `mode=patch`. |
+| `memory` | File-backed `MEMORY.md`/`USER.md` (add/replace/remove/read). |
+| `patch` | Replace mode: fuzzy multi-strategy match or V4A `mode=patch`. |
 | `process` | Manage background processes. |
 | `read_file` | Read file with line numbers. |
 | `search_files` | Search by content or filename. |
@@ -107,8 +107,14 @@ simpleTools call memory --args '{"action":"read"}'
 
 Environment highlights: `FIRECRAWL_API_KEY` / `FIRECRAWL_API_URL`, `TAVILY_API_KEY`, `EXA_API_KEY`, optional `SIMPLETOOLS_WEB_BACKEND` (`firecrawl`, `tavily`, or `exa`), `OPENAI_*` for vision, `SIMPLETOOLS_DATA_DIR`, `SIMPLETOOLS_FILE_READ_MAX_CHARS`, `SIMPLETOOLS_SKILLS_DIR`.
 
-**Hermes-style behavior (reimplemented, not copied):** multi-strategy fuzzy `patch` replace, optional `mode="patch"` V4A hunks, file read guards (device blocklist, char cap, repeat-read loop), web backend priority similar to Hermes, file-backed `memory` (`memories/MEMORY.md` + `USER.md`, `§` entries), session todos with `content`/`status`.
+**Behavior notes:** multi-strategy fuzzy `patch` replace, optional `mode="patch"` V4A hunks, file read guards (device blocklist, char cap, repeat-read loop), configurable web search backends, file-backed `memory` (`memories/MEMORY.md` + `USER.md`, `§` entries), session todos with `content`/`status`.
 
 ## Code quality (Cursor skills)
 
 Project-local guidance lives under [`.cursor/skills/`](.cursor/skills/) (e.g. `python-project-structure`, `python-type-safety`, `python-anti-patterns`). **Ruff** in [`pyproject.toml`](pyproject.toml) enforces a consistent style in CI and locally via `uv run ruff …`.
+
+## Acknowledgments
+
+**All of the tools in this repository are inspired by Hermes from [NousResearch](https://nousresearch.com/). The intent of this project is to simplify tool usage for external agents as well.**
+
+Nothing but love to the NousResearch team.
