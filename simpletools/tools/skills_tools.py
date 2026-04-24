@@ -3,9 +3,10 @@ from __future__ import annotations
 import os
 import re
 from pathlib import Path
-from typing import Any
+from typing import cast
 
 from simpletools.context import ToolContext
+from simpletools.responses.models import SkillRow, SkillsResult
 
 
 def _skills_dir(ctx: ToolContext) -> Path:
@@ -15,7 +16,7 @@ def _skills_dir(ctx: ToolContext) -> Path:
     return p
 
 
-def skills_list(ctx: ToolContext) -> dict[str, Any]:
+def skills_list(ctx: ToolContext) -> SkillsResult:
     root = _skills_dir(ctx)
     out: list[dict[str, str]] = []
     for d in sorted(root.iterdir()):
@@ -29,10 +30,10 @@ def skills_list(ctx: ToolContext) -> dict[str, Any]:
             if m:
                 desc = m.group(1).strip()
         out.append({"name": d.name, "description": desc})
-    return {"ok": True, "skills": out}
+    return {"ok": True, "skills": cast(list[SkillRow], out)}
 
 
-def skill_view(ctx: ToolContext, name: str, file: str | None = None) -> dict[str, Any]:
+def skill_view(ctx: ToolContext, name: str, file: str | None = None) -> SkillsResult:
     root = _skills_dir(ctx) / name
     if not root.is_dir():
         return {"ok": False, "error": f"unknown skill {name!r}"}
@@ -56,7 +57,7 @@ def skill_manage(
     action: str,
     name: str,
     content: str | None = None,
-) -> dict[str, Any]:
+) -> SkillsResult:
     action = (action or "").lower()
     root = _skills_dir(ctx) / name
     if action == "create":
