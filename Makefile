@@ -1,30 +1,35 @@
-# simpleTools — tests, preflight, semver bumps, PyPI publish (uv).
+# simpleAgentTools — tests, preflight, semver bumps, PyPI publish (uv).
 #
 # Typical release (after changes are committed):
 #   make test              # run unit tests
 #   make preflight         # sync + lint + types + tests + build + uv publish --dry-run
 #   make version-patch     # bump pyproject version, uv lock, commit, tag vX.Y.Z, push
-#   make publish           # preflight then upload (needs UV_PUBLISH_TOKEN)
+#   make publish-doppler   # preflight + uv publish inside doppler run (see Doppler notes below)
 #
-# Same idea as SimpleAgents’ Makefile, scoped to this Python package only.
+# Doppler: pick one — (1) run `doppler setup` in this repo, (2) export DOPPLER_PROJECT + DOPPLER_CONFIG,
+# (3) make publish-doppler DOPPLER_OPTS='--project YOUR_PROJECT --config dev'
 
 UV ?= uv
 SOURCES := simpletools tests
 PYPROJECT ?= pyproject.toml
 LOCKFILE ?= uv.lock
 GIT_REMOTE ?= origin
+DOPPLER ?= doppler
+# Extra args for `doppler run`, e.g. --project my-app --config dev (or -p / -c shorthand)
+DOPPLER_OPTS ?=
 
 .PHONY: help sync lint format typecheck mypy pyright test build clean check ci \
-	preflight check-publish publish-dry-only publish-dry-run publish \
+	preflight check-publish publish-dry-only publish-dry-run publish-doppler \
+	_publish-uv-do _publish-doppler-seq \
 	version-get version-next-patch version-next-minor version-next-major \
 	version-patch version-minor version-major version-set tag-release
 
 help:
-	@echo "simpleTools — common commands"
+	@echo "simpleAgentTools — common commands"
 	@echo ""
 	@echo "  make test              Run unit tests (unittest)"
 	@echo "  make preflight         Pre-publish gate: sync, lint, types, tests, build, uv publish --dry-run"
-	@echo "  make publish           Run preflight, then uv publish (requires UV_PUBLISH_TOKEN)"
+	@echo "  make publish-doppler   Preflight + publish entirely inside Doppler (token never needed in shell; avoids uv username/password prompts)"
 	@echo ""
 	@echo "Version (pyproject.toml + $(LOCKFILE), then git commit, tag, push):"
 	@echo "  make version-get             Show current version"
@@ -32,7 +37,7 @@ help:
 	@echo "  make version-minor           Bump minor (0.1.0 -> 0.2.0)"
 	@echo "  make version-major           Bump major (0.1.0 -> 1.0.0)"
 	@echo "  make version-set VERSION=X   Set exact version"
-	@echo "  make tag-release             Tag current pyproject version (no bump)"
+	@echo "  make tag-release             Tag vX.Y.Z from current pyproject + push (also runs after each version-* above)"
 	@echo ""
 	@echo "Granular (same as before):"
 	@echo "  make sync / lint / format / typecheck / build / check / ci"
@@ -76,7 +81,13 @@ preflight:
 	@$(MAKE) sync
 	@$(MAKE) check
 	@$(MAKE) build
-	@$(UV) publish --dry-run
+	@set -e; \
+	token="$${PYPI_TOKEN:-$${UV_PUBLISH_TOKEN:-$${V_PUBLISH_TOKEN}}}"; \
+	if [ -n "$$token" ]; then \
+		$(UV) publish --dry-run --token "$$token"; \
+	else \
+		$(UV) publish --dry-run; \
+	fi
 	@echo "==> Preflight passed."
 
 check-publish: preflight
@@ -86,9 +97,23 @@ publish-dry-only:
 
 publish-dry-run: preflight
 
-publish: preflight
-	@test -n "$$UV_PUBLISH_TOKEN" || (echo "error: set UV_PUBLISH_TOKEN for PyPI upload" >&2; exit 1)
-	$(UV) publish
+# Prefer PYPI_TOKEN; also accept UV_PUBLISH_TOKEN (uv) and V_PUBLISH_TOKEN (SimpleAgents publish-python).
+_publish-uv-do:
+	@set -e; \
+	token="$${PYPI_TOKEN:-$${UV_PUBLISH_TOKEN:-$${V_PUBLISH_TOKEN}}}"; \
+	if [ -z "$$token" ]; then \
+		echo "error: missing PyPI token." >&2; \
+		echo "  Store PYPI_TOKEN (or UV_PUBLISH_TOKEN / V_PUBLISH_TOKEN) in Doppler and run make publish-doppler." >&2; \
+		exit 1; \
+	fi; \
+	UV_PUBLISH_TOKEN=$$token $(UV) publish --token "$$token"
+
+# Run preflight + upload inside Doppler so dry-run and publish both see PYPI_TOKEN (etc.).
+publish-doppler:
+	@$(DOPPLER) run $(DOPPLER_OPTS) --command "cd $(CURDIR) && $(MAKE) --no-print-directory _publish-doppler-seq"
+
+_publish-doppler-seq: preflight
+	@$(MAKE) --no-print-directory _publish-uv-do
 
 # --- version (pyproject.toml semver) ----------------------------------------
 
@@ -127,8 +152,7 @@ define bump_version
 	$(UV) lock; \
 	git add "$(PYPROJECT)" "$(LOCKFILE)"; \
 	git commit -m "chore(release): bump version to $$new"; \
-	git tag -a "v$$new" -m "Release version $$new"; \
-	git push "$(GIT_REMOTE)" HEAD --follow-tags; \
+	$(MAKE) --no-print-directory tag-release; \
 	echo "Version bumped, committed, tagged, and pushed: $$new"
 endef
 
@@ -167,8 +191,7 @@ version-set:
 	$(UV) lock; \
 	git add "$(PYPROJECT)" "$(LOCKFILE)"; \
 	git commit -m "chore(release): bump version to $(VERSION)"; \
-	git tag -a "v$(VERSION)" -m "Release version $(VERSION)"; \
-	git push "$(GIT_REMOTE)" HEAD --follow-tags; \
+	$(MAKE) --no-print-directory tag-release; \
 	echo "Version set, committed, tagged, and pushed: $(VERSION)"
 
 tag-release:
