@@ -7,7 +7,8 @@ import re
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any
+
+from simpletools.responses.models import V4ApplyResult
 
 
 class OpKind(str, Enum):
@@ -116,7 +117,7 @@ def parse_v4a(patch_text: str) -> tuple[list[PatchOp], str | None]:
     return ops, None
 
 
-def apply_v4a(ops: list[PatchOp], cwd: Path) -> dict[str, Any]:
+def apply_v4a(ops: list[PatchOp], cwd: Path) -> V4ApplyResult:
     from simpletools.fuzzy_patch import fuzzy_find_and_replace
 
     diffs: list[str] = []
