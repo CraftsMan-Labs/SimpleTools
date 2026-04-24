@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import Any
 
-from simpletools.context import ToolContext
-
-SenderFn = Callable[[str, str, dict[str, Any]], dict[str, Any]]
+from simpletools.context import SenderFn, ToolContext
+from simpletools.responses.models import MessageResult
 
 
 def send_message(
@@ -14,7 +12,7 @@ def send_message(
     target: str | None = None,
     message: str | None = None,
     **kwargs: Any,
-) -> dict[str, Any]:
+) -> MessageResult:
     """
     action=list -> registered channels.
     action=send -> dispatch via ctx.message_senders[target] if configured.
