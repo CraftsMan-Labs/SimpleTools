@@ -1,0 +1,25 @@
+---
+description: Enforce project Python skills (anti-patterns, typing, resilience, design) on package code.
+globs: simpletools/**/*.py
+alwaysApply: false
+---
+
+# Python skills (strict)
+
+Before editing or reviewing code under `simpletools/`, read and apply all of the following project skills. Treat them as **hard requirements**, not suggestions.
+
+| Topic | Read first (prefer `.cursor/`; `.agents/` is a mirror where present) |
+|-------|------------------------------------------------------------------------|
+| Anti-patterns | `.cursor/skills/python-anti-patterns/SKILL.md` |
+| Type safety | `.cursor/skills/python-type-safety/SKILL.md` |
+| Resilience | `.cursor/skills/python-resilience/SKILL.md` |
+| Design patterns | `.cursor/skills/python-design-patterns/SKILL.md` |
+
+## Checklist
+
+- **Anti-patterns**: No blind `except`, no silent failure, no magic without named constants where the linter flags them, security-sensitive APIs documented or narrowed (`subprocess`, HTTP, paths under cwd).
+- **Type safety**: Strict typing compatible with `mypy` / `pyright` project settings; no unnecessary `Any`; narrow JSON and dynamic APIs with `cast` or typed wrappers.
+- **Resilience**: Retries/timeouts for external I/O where appropriate; errors surfaced or logged with context; long-running boundaries (e.g. schedulers) must not crash the process—log and continue with an explicit noqa only at that boundary.
+- **Design**: Prefer small functions, clear data shapes, and patterns from the skill (composition over sprawling branches) unless a file is explicitly exempted in `pyproject.toml` with a short justification in review.
+
+If a change would violate a skill, refactor or add a narrowly scoped `# noqa` / per-file ignore in `pyproject.toml` **with a one-line comment in code** explaining why.
