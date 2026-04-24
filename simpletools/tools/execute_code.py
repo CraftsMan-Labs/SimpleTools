@@ -6,12 +6,12 @@ import sys
 import tempfile
 from contextlib import suppress
 from pathlib import Path
-from typing import Any
 
 from simpletools.context import ToolContext
+from simpletools.responses.models import ExecuteCodeOk, ExecuteCodeResult, TerminalTimeout
 
 
-def execute_code(ctx: ToolContext, code: str, timeout: float = 120.0) -> dict[str, Any]:
+def execute_code(ctx: ToolContext, code: str, timeout: float = 120.0) -> ExecuteCodeResult:
     """Run Python in a subprocess (isolated from caller). No tool bridge inside the snippet."""
     code = (code or "").strip()
     if not code:
@@ -30,14 +30,22 @@ def execute_code(ctx: ToolContext, code: str, timeout: float = 120.0) -> dict[st
             env={**os.environ},
             check=False,
         )
-        return {
+    except subprocess.TimeoutExpired as e:
+        tout: TerminalTimeout = {
+            "ok": False,
+            "error": "timeout",
+            "stdout": str(e.stdout or ""),
+            "stderr": str(e.stderr or ""),
+        }
+        return tout
+    else:
+        ok: ExecuteCodeOk = {
             "ok": True,
             "exit_code": proc.returncode,
-            "stdout": proc.stdout[-200_000:],
-            "stderr": proc.stderr[-200_000:],
+            "stdout": str(proc.stdout or "")[-200_000:],
+            "stderr": str(proc.stderr or "")[-200_000:],
         }
-    except subprocess.TimeoutExpired as e:
-        return {"ok": False, "error": "timeout", "stdout": e.stdout or "", "stderr": e.stderr or ""}
+        return ok
     finally:
         if path:
             with suppress(OSError):
